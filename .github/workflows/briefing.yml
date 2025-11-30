@@ -1,0 +1,77 @@
+name: 🤖 AI Briefing
+
+on:
+  # Programación (Cron usa hora UTC)
+  # Ejemplo para España (UTC+1 en invierno, UTC+2 en verano):
+  # Si quieres las 06:00 AM hora España:
+  # Invierno: Poner '0 5 ...' (5 AM UTC)
+  # Verano: Poner '0 4 ...' (4 AM UTC)
+  # Aquí pongo 05:00 UTC, 13:00 UTC, 21:00 UTC (aprox 6am, 2pm, 10pm hora local)
+  schedule:
+    - cron: '0 5,13,21 * * *'
+  
+  # Permite ejecutarlo manualmente desde la pestaña "Actions" para probar
+  workflow_dispatch:
+
+jobs:
+  run-briefing:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descargar el código
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Instalar Python
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 3. Instalar Tesseract OCR con Español (CRÍTICO)
+      - name: 👁️ Install Tesseract OCR (System)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-spa libtesseract-dev
+
+      # 4. Instalar librerías de Python
+      - name: 📦 Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 5. Reconstruir archivos secretos desde GitHub Secrets
+      - name: 🔓 Recreate Secret Files
+        env:
+          ENV_FILE_CONTENT: ${{ secrets.ENV_FILE }}
+          CREDENTIALS_B64: ${{ secrets.CREDENTIALS_JSON_B64 }}
+          TOKEN_B64: ${{ secrets.TOKEN_JSON_B64 }}
+        run: |
+          # Crear .env
+          echo "$ENV_FILE_CONTENT" | base64 -d > .env
+          
+          # Decodificar y crear credentials.json
+          echo "$CREDENTIALS_B64" | base64 -d > credentials.json
+          
+          # Decodificar y crear token.json
+          echo "$TOKEN_B64" | base64 -d > token.json
+          
+          echo "✅ Archivos de configuración restaurados."
+
+      # 6. Ejecutar el script
+      - name: 🚀 Run AI Assistant
+        env:
+          # Inyectamos variables críticas por si python-dotenv falla o para sobreescribir
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python main.py
+
+      # (Opcional) Guardar log como artefacto si falla
+      - name: 📤 Upload Logs on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-logs
+          path: *.log
