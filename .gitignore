@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Google Credentials
+token.json
+credentials.json
+client_secret_*.json
+CREDENTIALS_JSON_B64
+ENV_FILE_CONTENT
+TOKEN_JSON_B64
+
+# Logs
+*.log

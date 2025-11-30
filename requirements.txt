@@ -1,0 +1,12 @@
+crewai[google-genai]
+yfinance
+google-auth-oauthlib
+google-api-python-client
+twilio
+pytesseract
+requests
+Pillow
+beautifulsoup4
+feedparser
+python-dotenv
+pandas
