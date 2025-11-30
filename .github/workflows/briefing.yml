@@ -48,7 +48,7 @@ jobs:
           TOKEN_B64: ${{ secrets.TOKEN_JSON_B64 }}
         run: |
           # Crear .env
-          echo "$ENV_FILE_CONTENT" | base64 -d > .env
+          echo "$ENV_FILE_CONTENT" > .env
           
           # Decodificar y crear credentials.json
           echo "$CREDENTIALS_B64" | base64 -d > credentials.json
